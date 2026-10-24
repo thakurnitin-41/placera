@@ -43,3 +43,10 @@ def test_recommendation_run_can_be_read_back_and_has_no_fabricated_metrics():
 def test_shortlist_label_requires_existing_records():
     response=client.post("/api/validation/labels",json={"student_id":"missing","opportunity_id":"missing","label":True})
     assert response.status_code==404
+
+def test_upsert_profile_updates_existing_record():
+    payload={"student_id":"S-1","name":"Before","cgpa":7.8,"branch":"CSE","skills":["Python"]}
+    assert client.post("/api/students",json=payload).status_code==201
+    payload["name"]="After"; payload["cgpa"]=8.4
+    response=client.post("/api/students",json=payload)
+    assert response.status_code==201 and response.json()["name"]=="After" and response.json()["cgpa"]==8.4
