@@ -1,26 +1,35 @@
 # Placera AI PBL backend
 
-First backend milestone for the report-first PBL. Includes deterministic eligibility, graph search, Minimax/Alpha-Beta, knowledge-representation helpers, uncertainty primitives, a recommendation pipeline and FastAPI boundary.
+Report-first backend for Placera. It provides deterministic algorithms and PostgreSQL-backed APIs for profiles, opportunities, recommendation history and coordinator shortlist labels.
 
-## Setup
-```bash
+## Setup (Windows PowerShell)
+```powershell
 cd backend
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
-python -m pip install -e '.[test]'
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[test]"
+Copy-Item .env.example .env
+# Edit .env and set DATABASE_URL to your PostgreSQL connection string.
+alembic upgrade head
 pytest
 uvicorn placera_ai.api:app --reload
 ```
 
-GET /health checks the API process only and does not claim PostgreSQL is connected. POST /api/recommendations currently computes in memory. Durable repositories, authentication and frontend integration remain later milestones.
+Set `DATABASE_URL` in the shell or load your local .env using your preferred environment manager; the app does not automatically load .env files. Example:
+`postgresql+psycopg://placera:YOUR_PASSWORD@localhost:5432/placera`
 
-## PostgreSQL schema
-Set DATABASE_URL in your environment, install dependencies, then run alembic upgrade head from the backend directory. The initial schema includes profiles, normalized skills and aliases, opportunities, coordinator shortlist labels, recommendation runs/results, rule firings, calibration records and audit events. Migration execution requires a reachable PostgreSQL database. Do not use Base.metadata.create_all() as a production migration workflow.
+## API endpoints
+- `GET /health`: reports whether PostgreSQL can answer SELECT 1.
+- `POST/GET /api/students`: create/update and list student profiles.
+- `POST/GET /api/opportunities`: create/update and list opportunity records.
+- `POST /api/recommendations`: runs eligibility-first matching and persists run + results.
+- `GET /api/recommendation-runs/{run_id}`: reloads a saved run and its results.
+- `POST /api/validation/labels`: create/update coordinator shortlist labels.
+- `GET /api/validation/metrics?run_id=...`: computes precision/recall against labels assigned to the test split; returns unavailable if none exist.
 
-## Limitations
-- Priors and likelihoods are explicit demonstration assumptions, not learned parameters.
-- The Bayesian-network helper is a single evidence update, not a general DAG inference engine.
-- Forward chaining supports ground propositional Horn rules; unification is a separate helper, not a complete FOL theorem prover.
-- Fuzzy membership/centroid primitives are implemented; the report's complete nine-rule fuzzy system still needs encoding and tests.
-- No precision/recall claim is made without coordinator-labelled holdout data.
+Swagger docs are available at `/docs` while the API is running.
+
+## Security and limitations
+**Authentication and authorization are not implemented in this backend milestone. Do not expose write endpoints to the public internet yet.** Add server-side authentication, role-based access control, rate limits, audit review and privacy controls before public deployment. Never commit production credentials.
+
+Priors and likelihoods are explicit demo assumptions, not learned parameters. The Bayesian-network helper is a single evidence update, not a general DAG inference engine. Forward chaining supports ground propositional Horn rules; unification is a separate helper, not a complete FOL theorem prover. The nine-rule fuzzy system and full frontend integration remain follow-up work. No precision/recall claim is made without independent coordinator-labelled test data.
