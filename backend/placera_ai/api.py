@@ -170,10 +170,14 @@ def save_shortlist_label(payload: ShortlistLabelInput, db: Session=Depends(get_d
 def validation_metrics(run_id: str, db: Session=Depends(get_db)):
     run=db.get(RecommendationRunRecord,run_id)
     if run is None: raise HTTPException(status_code=404,detail="Recommendation run not found")
-    labels=db.scalars(select(ManualShortlistRecord).where(ManualShortlistRecord.dataset_split=="test")).all()
+    all_labels=db.scalars(select(ManualShortlistRecord).where(ManualShortlistRecord.dataset_split=="test")).all()
+    run_rows=db.scalars(select(RecommendationResultRecord).where(RecommendationResultRecord.run_id==run_id)).all()
+    predictions={ (r.student_id,r.opportunity_id):bool(r.eligible and r.score>=50) for r in run_rows }
+    # Evaluate only labelled pairs represented in this exact run. A missing prediction
+    # for an unrelated student/job pair must not be counted as a false negative.
+    labels=[label for label in all_labels if (label.student_id,label.opportunity_id) in predictions]
     if not labels:
-        return {"run_id":run_id,"status":"unavailable","reason":"No coordinator-labelled test-set shortlist pairs exist yet.","label_count":0,"precision":None,"recall":None}
-    predictions={ (r.student_id,r.opportunity_id):bool(r.eligible and r.score>=50) for r in db.scalars(select(RecommendationResultRecord).where(RecommendationResultRecord.run_id==run_id)).all() }
-    pairs=[(bool(label.label),predictions.get((label.student_id,label.opportunity_id),False)) for label in labels]
+        return {"run_id":run_id,"status":"unavailable","reason":"No coordinator-labelled test-set pairs overlap this recommendation run.","label_count":0,"precision":None,"recall":None}
+    pairs=[(bool(label.label),predictions[(label.student_id,label.opportunity_id)]) for label in labels]
     tp=sum(y and p for y,p in pairs); fp=sum((not y) and p for y,p in pairs); fn=sum(y and (not p) for y,p in pairs)
     return {"run_id":run_id,"status":"measured_on_labelled_test_split","label_count":len(pairs),"threshold":50,"true_positive":tp,"false_positive":fp,"false_negative":fn,"precision":tp/(tp+fp) if tp+fp else None,"recall":tp/(tp+fn) if tp+fn else None,"note":"Metrics are meaningful only when labels are independent of this run and the threshold was selected before examining the test split."}
