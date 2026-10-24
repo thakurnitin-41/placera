@@ -13,7 +13,10 @@ pytest
 uvicorn placera_ai.api:app --reload
 ```
 
-GET /health checks the API process only and does not claim PostgreSQL is connected. POST /api/recommendations currently computes in memory. Durable repositories, schema migrations, authentication and frontend integration remain later milestones.
+GET /health checks the API process only and does not claim PostgreSQL is connected. POST /api/recommendations currently computes in memory. Durable repositories, authentication and frontend integration remain later milestones.
+
+## PostgreSQL schema
+Set DATABASE_URL in your environment, install dependencies, then run alembic upgrade head from the backend directory. The initial schema includes profiles, normalized skills and aliases, opportunities, coordinator shortlist labels, recommendation runs/results, rule firings, calibration records and audit events. Migration execution requires a reachable PostgreSQL database. Do not use Base.metadata.create_all() as a production migration workflow.
 
 ## Limitations
 - Priors and likelihoods are explicit demonstration assumptions, not learned parameters.
