@@ -302,9 +302,13 @@ export default function App() {
   };
 
   const handleUpdateStudent = (updatedStudent: StudentProfileData) => {
+    // If an administrator is signed in, never change the active session to the student being updated/approved!
+    // Only update student session if the currently logged-in student matches this record
     setStudent(prev => {
-      if (!prev) return updatedStudent;
-      if (prev.student_id === updatedStudent.student_id) return updatedStudent;
+      if (adminSession) return null;
+      if (prev && prev.student_id === updatedStudent.student_id) {
+        return updatedStudent;
+      }
       return prev;
     });
     setRegisteredStudents(prev => 
@@ -591,6 +595,8 @@ export default function App() {
               onDeleteJob={handleDeleteJob}
               onBack={goBack}
               setActivePage={navigateTo}
+              isAdminAuthenticated={true}
+              onAdminLogout={handleAdminLogout}
             />
           )
         )}
@@ -646,7 +652,7 @@ export default function App() {
         />
       )}
 
-      {/* Global Academic PBL Footer */}
+      {/* Global Footer */}
       <footer className="mt-16 border-t border-slate-200 bg-white py-8 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
@@ -654,7 +660,7 @@ export default function App() {
             <span className="hidden sm:inline text-slate-300">|</span>
             <span>Find Where You Fit.</span>
             <span className="hidden sm:inline text-slate-300">•</span>
-            <span className="text-slate-600 font-medium">B.Tech CSE Artificial Intelligence PBL Project</span>
+            <span className="text-slate-600 font-medium">AI Campus Placement & Recruitment Engine</span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-slate-600 font-medium">
@@ -663,7 +669,7 @@ export default function App() {
               className="hover:text-indigo-600 flex items-center gap-1 cursor-pointer"
             >
               <Database className="w-3.5 h-3.5 text-indigo-500" />
-              <span>MySQL Schema</span>
+              <span>PostgreSQL Schema</span>
             </button>
             <span>•</span>
             <button

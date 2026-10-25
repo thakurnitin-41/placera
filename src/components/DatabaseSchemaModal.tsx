@@ -164,7 +164,7 @@ CREATE TABLE skill_gaps (
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">Database Structure (PostgreSQL / Relational / NoSQL)</h2>
-              <p className="text-xs text-slate-500">PostgreSQL (Render live API), MySQL DDL, and Firestore mapping</p>
+              <p className="text-xs text-slate-500">PostgreSQL (Render Live Production DB), Table Architecture, and NoSQL mapping</p>
             </div>
           </div>
           <button
@@ -199,7 +199,7 @@ CREATE TABLE skill_gaps (
               activeTab === 'sql' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'
             }`}
           >
-            MySQL DDL
+            Standard SQL DDL
           </button>
           <button
             onClick={() => setActiveTab('firebase')}
@@ -327,7 +327,7 @@ CREATE TABLE skill_gaps (
           {activeTab === 'sql' && (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-slate-700">MySQL Schema DDL Script</span>
+                <span className="font-semibold text-slate-700">Standard Relational DDL Script</span>
                 <button
                   onClick={copySql}
                   className="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 flex items-center gap-1 cursor-pointer font-medium"

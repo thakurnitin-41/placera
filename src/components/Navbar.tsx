@@ -92,8 +92,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="bg-slate-900 text-slate-200 text-xs px-4 py-1.5 flex items-center justify-between border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="font-semibold text-white">B.Tech CSE Artificial Intelligence PBL Project</span>
-          <span className="hidden sm:inline text-slate-400">| PLACERA PLACEMENT ENGINE</span>
+          <span className="font-bold text-white tracking-wide">PLACERA</span>
+          <span className="hidden sm:inline text-slate-400">| AI Campus Placement & Recruitment Engine</span>
           {apiState && (
             <div
               className={`hidden md:inline-flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-full text-[10px] font-mono border ${
@@ -213,8 +213,27 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* User Auth, Profile & Dual Portals */}
+          {/* User Auth, Profile & Dual Portals */}
           <div className="hidden sm:flex items-center gap-2.5">
-            {student ? (
+            {adminSession ? (
+              /* Admin Officer badge when admin logged in */
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-semibold shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="text-left">
+                  <span className="block font-bold text-slate-900 leading-tight">{adminSession.name}</span>
+                  <span className="text-[10px] text-emerald-700 block leading-tight">{adminSession.role.split('/')[0]}</span>
+                </div>
+                {onAdminLogout && (
+                  <button
+                    onClick={onAdminLogout}
+                    className="ml-1 p-1 hover:bg-emerald-100 rounded text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Sign Out from Placement Officer Portal"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ) : student ? (
               /* Profile Bar shown ONLY when student is actively logged in / registered */
               <div className="relative">
                 <button
@@ -319,30 +338,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </div>
-            ) : adminSession ? (
-              /* Admin Officer badge when admin logged in and no student */
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-semibold shadow-xs">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <div className="text-left">
-                  <span className="block font-bold text-slate-900 leading-tight">{adminSession.name}</span>
-                  <span className="text-[10px] text-emerald-700 block leading-tight">{adminSession.role.split('/')[0]}</span>
-                </div>
-                {onAdminLogout && (
-                  <button
-                    onClick={onAdminLogout}
-                    className="ml-1 p-1 hover:bg-emerald-100 rounded text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
-                    title="Sign Out from Placement Officer Portal"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
             ) : null}
           </div>
 
           {/* Mobile menu button & quick profile indicator */}
           <div className="flex items-center gap-2">
-            {student ? (
+            {adminSession ? (
+              <button
+                onClick={() => setActivePage('admin')}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Admin</span>
+              </button>
+            ) : student ? (
               <button
                 onClick={() => setActivePage('profile')}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold cursor-pointer"
@@ -356,14 +365,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
                 <span className="max-w-[80px] truncate">{student.name.split(' ')[0]}</span>
-              </button>
-            ) : adminSession ? (
-              <button
-                onClick={() => setActivePage('admin')}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Admin</span>
               </button>
             ) : null}
 
@@ -385,7 +386,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button onClick={() => { setActivePage('landing'); setMobileMenuOpen(false); }} className={`px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 ${activePage === 'landing' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>Home</button>
             <button onClick={() => { setActivePage('about'); setMobileMenuOpen(false); }} className={`px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 ${activePage === 'about' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>About PLACERA</button>
           </div>
-          {student && (
+          {adminSession ? (
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <div>
+                  <span className="font-bold text-emerald-950 block">{adminSession.name}</span>
+                  <span className="text-[10px] text-emerald-700">{adminSession.role}</span>
+                </div>
+              </div>
+              {onAdminLogout && (
+                <button
+                  onClick={onAdminLogout}
+                  className="px-2 py-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              )}
+            </div>
+          ) : student ? (
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-full overflow-hidden border border-indigo-200 bg-white shrink-0">
@@ -415,19 +434,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
             </div>
-          )}
-
-          {adminSession && !student && (
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                <div>
-                  <span className="font-bold text-emerald-950 block">{adminSession.name}</span>
-                  <span className="text-[10px] text-emerald-700">{adminSession.role}</span>
-                </div>
-              </div>
-            </div>
-          )}
+          ) : null}
 
           {visibleNavItems.length > 0 && (
             <>

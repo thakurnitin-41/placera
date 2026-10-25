@@ -21,7 +21,8 @@ import {
   FileCheck,
   Compass,
   Award,
-  ChevronRight
+  ChevronRight,
+  Quote
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -61,8 +62,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     }
   };
 
-
-
   return (
     <div className="space-y-16 pb-20">
       
@@ -74,6 +73,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center max-w-3xl mx-auto space-y-6">
             
+            {/* Top Career Quotation Card */}
+            <div className="relative max-w-2xl mx-auto p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-white to-blue-50/80 border border-indigo-100 shadow-xs text-center space-y-2">
+              <div className="flex items-center justify-center gap-2 text-indigo-600 text-xs font-bold uppercase tracking-wider">
+                <Quote className="w-3.5 h-3.5 rotate-180" />
+                <span>Pathway to Excellence</span>
+                <Quote className="w-3.5 h-3.5" />
+              </div>
+              <blockquote className="text-sm sm:text-base font-semibold text-slate-800 italic leading-snug">
+                "Your future is created by what you do today, not tomorrow. Discover your true strengths, bridge your skill gaps, and step into the right opportunity."
+              </blockquote>
+              <p className="text-[11px] font-medium text-slate-500">
+                — Empowering Every Student's Career Journey
+              </p>
+            </div>
+
             {/* Top Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200/80 text-indigo-700 text-xs font-semibold shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-indigo-600 animate-pulse" />

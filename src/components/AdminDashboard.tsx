@@ -601,17 +601,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     ].filter(d => d.value > 0);
   }, [students]);
 
-  // If not authenticated as Admin, display the restricted safety guard
-  if (!isAuthenticated) {
-    return (
-      <AdminSecurityGate
-        onAuthenticated={handleAdminAuthSuccess}
-        onCancel={onBack || (() => {
-          if (setActivePage) setActivePage('landing');
-        })}
-      />
-    );
-  }
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20 px-4 sm:px-6">
