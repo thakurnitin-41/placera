@@ -122,16 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
             </div>
-          ) : (
-            <button
-              onClick={() => setActivePage('admin')}
-              id="nav-admin-portal-top-btn"
-              className="flex items-center gap-1.5 text-xs text-emerald-300 hover:text-white transition-colors cursor-pointer font-bold"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Admin / TPO Portal</span>
-            </button>
-          )}
+          ) : null}
           <button
             onClick={onOpenSchema}
             id="nav-schema-btn"
@@ -500,38 +491,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             ) : (
-              /* When NOT signed in: Show Register & Sign In options */
-              onOpenAuthModal && (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      onOpenAuthModal('student', 'register');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full text-center py-2 text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl cursor-pointer"
-                  >
-                    🎓 Student Register
-                  </button>
-                  <button
-                    onClick={() => {
-                      onOpenAuthModal('student', 'login');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full text-center py-2 text-xs font-semibold bg-slate-100 text-slate-800 rounded-xl cursor-pointer"
-                  >
-                    🎓 Student Sign In
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActivePage('admin');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full col-span-2 text-center py-2 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl cursor-pointer"
-                  >
-                    🏛️ Placement Officer / Admin Portal
-                  </button>
-                </div>
-              )
+              {/* Logged-out users use the single landing-page CTA. */}
+              null
             )}
           </div>
         </div>
