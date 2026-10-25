@@ -6,8 +6,78 @@ interface DatabaseSchemaModalProps {
 }
 
 export const DatabaseSchemaModal: React.FC<DatabaseSchemaModalProps> = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState<'visual' | 'sql' | 'firebase'>('visual');
+  const [activeTab, setActiveTab] = useState<'postgres' | 'visual' | 'sql' | 'firebase'>('postgres');
   const [copiedSql, setCopiedSql] = useState(false);
+  const [copiedPgSql, setCopiedPgSql] = useState(false);
+
+  const postgresSchemaCode = `-- PLACERA Production PostgreSQL Schema (Render Managed PostgreSQL)
+-- Applied automatically via Alembic migrations on deployment
+
+-- 1. Students Table (Candidate Profiles)
+CREATE TABLE students (
+    student_id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(160) NOT NULL,
+    cgpa NUMERIC(4, 2) NOT NULL,
+    branch VARCHAR(64) NOT NULL,
+    active_backlogs INTEGER NOT NULL DEFAULT 0,
+    graduation_year INTEGER,
+    skills JSONB NOT NULL DEFAULT '[]'::jsonb,
+    projects JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Opportunities Table (Campus Recruitment Drives)
+CREATE TABLE opportunities (
+    opportunity_id VARCHAR(64) PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    company VARCHAR(160),
+    minimum_cgpa NUMERIC(4, 2) NOT NULL,
+    eligible_branches JSONB NOT NULL DEFAULT '[]'::jsonb,
+    required_skills JSONB NOT NULL DEFAULT '[]'::jsonb,
+    max_active_backlogs INTEGER NOT NULL DEFAULT 0,
+    eligible_graduation_years JSONB,
+    seats INTEGER NOT NULL DEFAULT 1,
+    source VARCHAR(32) NOT NULL DEFAULT 'synthetic',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Recommendation Runs Table (Explainable Run Audit)
+CREATE TABLE recommendation_runs (
+    run_id VARCHAR(64) PRIMARY KEY,
+    algorithm_version VARCHAR(32) NOT NULL,
+    parameters JSONB NOT NULL,
+    dataset_version VARCHAR(80) NOT NULL,
+    validation_status VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Recommendation Results Table (Bayesian Scores & Explanation)
+CREATE TABLE recommendation_results (
+    id SERIAL PRIMARY KEY,
+    run_id VARCHAR(64) NOT NULL REFERENCES recommendation_runs(run_id) ON DELETE CASCADE,
+    student_id VARCHAR(64) NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
+    opportunity_id VARCHAR(64) NOT NULL REFERENCES opportunities(opportunity_id) ON DELETE CASCADE,
+    eligible BOOLEAN NOT NULL,
+    score NUMERIC(5, 2) NOT NULL,
+    matched_skills JSONB NOT NULL,
+    missing_skills JSONB NOT NULL,
+    explanation JSONB NOT NULL,
+    uncertainty JSONB NOT NULL
+);
+
+-- 5. Manual Shortlist Labels Table (Placement Coordinator Benchmarks)
+CREATE TABLE manual_shortlist_labels (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(64) NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
+    opportunity_id VARCHAR(64) NOT NULL REFERENCES opportunities(opportunity_id) ON DELETE CASCADE,
+    label BOOLEAN NOT NULL,
+    reviewer VARCHAR(120),
+    dataset_split VARCHAR(32) NOT NULL DEFAULT 'unassigned',
+    source_note TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT uq_manual_shortlist UNIQUE (student_id, opportunity_id)
+);`;
 
   const mysqlSchemaCode = `-- PLACERA Database Schema (MySQL 8.0 / Cloud SQL Compatible)
 -- Project: AI-Powered Placement Recommendation System
@@ -76,6 +146,12 @@ CREATE TABLE skill_gaps (
     setTimeout(() => setCopiedSql(false), 2000);
   };
 
+  const copyPgSql = () => {
+    navigator.clipboard.writeText(postgresSchemaCode);
+    setCopiedPgSql(true);
+    setTimeout(() => setCopiedPgSql(false), 2000);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -87,8 +163,8 @@ CREATE TABLE skill_gaps (
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Database Structure (MySQL / Firebase Compatible)</h2>
-              <p className="text-xs text-slate-500">PBL Database specification with Relational and NoSQL mapping</p>
+              <h2 className="text-lg font-bold text-slate-900">Database Structure (PostgreSQL / Relational / NoSQL)</h2>
+              <p className="text-xs text-slate-500">PostgreSQL (Render live API), MySQL DDL, and Firestore mapping</p>
             </div>
           </div>
           <button
@@ -100,10 +176,18 @@ CREATE TABLE skill_gaps (
         </div>
 
         {/* Tab Controls */}
-        <div className="px-6 pt-3 border-b border-slate-200 flex gap-6 text-xs font-bold bg-white">
+        <div className="px-6 pt-3 border-b border-slate-200 flex gap-6 text-xs font-bold bg-white overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('postgres')}
+            className={`pb-3 border-b-2 cursor-pointer shrink-0 ${
+              activeTab === 'postgres' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500'
+            }`}
+          >
+            PostgreSQL (Live Render DB)
+          </button>
           <button
             onClick={() => setActiveTab('visual')}
-            className={`pb-3 border-b-2 cursor-pointer ${
+            className={`pb-3 border-b-2 cursor-pointer shrink-0 ${
               activeTab === 'visual' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'
             }`}
           >
@@ -111,15 +195,15 @@ CREATE TABLE skill_gaps (
           </button>
           <button
             onClick={() => setActiveTab('sql')}
-            className={`pb-3 border-b-2 cursor-pointer ${
+            className={`pb-3 border-b-2 cursor-pointer shrink-0 ${
               activeTab === 'sql' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'
             }`}
           >
-            MySQL DDL (SQL Script)
+            MySQL DDL
           </button>
           <button
             onClick={() => setActiveTab('firebase')}
-            className={`pb-3 border-b-2 cursor-pointer ${
+            className={`pb-3 border-b-2 cursor-pointer shrink-0 ${
               activeTab === 'firebase' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'
             }`}
           >
@@ -129,6 +213,29 @@ CREATE TABLE skill_gaps (
 
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+          {activeTab === 'postgres' && (
+            <div className="space-y-3">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="font-bold block text-xs">Live Render PostgreSQL Database Schema</span>
+                  <span className="text-[11px] text-emerald-800">
+                    5 Relational tables synchronized with FastAPI + SQLAlchemy in <code className="font-mono bg-white/70 px-1 py-0.5 rounded">backend/</code>
+                  </span>
+                </div>
+                <button
+                  onClick={copyPgSql}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center justify-center gap-1.5 cursor-pointer font-medium text-xs shadow-xs shrink-0"
+                >
+                  {copiedPgSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedPgSql ? 'Copied' : 'Copy PostgreSQL DDL'}</span>
+                </button>
+              </div>
+              <pre className="p-4 bg-slate-900 text-emerald-300 rounded-xl font-mono text-[11px] overflow-x-auto leading-relaxed border border-slate-800">
+                <code>{postgresSchemaCode}</code>
+              </pre>
+            </div>
+          )}
+
           {activeTab === 'visual' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Table 1: Students */}

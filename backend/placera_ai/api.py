@@ -6,10 +6,8 @@ until authentication, authorization, rate limits and privacy controls are added.
 import os
 from functools import lru_cache
 from uuid import uuid4
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -19,44 +17,23 @@ from .models import Opportunity, StudentProfile
 from .orm_models import ManualShortlistRecord, OpportunityRecord, RecommendationResultRecord, RecommendationRunRecord, StudentRecord
 from .pipeline import recommend
 
-app=FastAPI(title="Placera AI PBL API",version="0.2.0")
+app = FastAPI(title="Placera AI PBL API", version="0.2.0")
 
-# Restrict browser access to explicitly configured frontend origins.
-_allowed_origins = [
-    origin.strip().rstrip("/")
-    for origin in os.getenv(
-        "ALLOWED_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000",
-    ).split(",")
-    if origin.strip()
-]
+# Support both explicit origins and Vercel deployments (*.vercel.app)
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "").strip()
+if _raw_origins and _raw_origins != "*":
+    _allowed_origins = [o.strip().rstrip("/") for o in _raw_origins.split(",") if o.strip()]
+else:
+    _allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    allow_origin_regex=r"^https://.*\.vercel\.app$" if _allowed_origins != ["*"] else None,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
-class PublicAPIWriteSafetyGuard(BaseHTTPMiddleware):
-    """Fail closed until API authentication and authorization are implemented."""
-
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path.startswith("/api/"):
-            return JSONResponse(
-                status_code=503,
-                content={
-                    "detail": (
-                        "Placera API is temporarily disabled until server-side "
-                        "authentication and authorization are configured. "
-                        "Use synthetic/demo data only."
-                    )
-                },
-            )
-        return await call_next(request)
-
-# Keep /health available for deployment checks; block all data endpoints publicly.
-app.add_middleware(PublicAPIWriteSafetyGuard)
 
 class StudentInput(BaseModel):
     student_id: str=Field(min_length=1,max_length=64)

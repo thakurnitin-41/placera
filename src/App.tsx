@@ -24,8 +24,13 @@ import { AdminSecurityGate, AdminCredentials } from './components/AdminSecurityG
 import { VerificationWaitingGate } from './components/VerificationWaitingGate';
 
 import { Database, CheckCircle2 } from 'lucide-react';
-import { apiHealth } from './services/apiClient';
-
+import {
+  apiHealth,
+  isApiConfigured,
+  fetchOpportunitiesApi,
+  saveOpportunityApi,
+  saveStudentApi,
+} from './services/apiClient';
 
 export default function App() {
   const [activePage, setActivePage] = useState<ActivePage>('landing');
@@ -35,10 +40,17 @@ export default function App() {
   const [showDbSchemaModal, setShowDbSchemaModal] = useState<boolean>(false);
   const [notification, setNotification] = useState<string | null>(null);
 
+  // Live API and PostgreSQL connection state
+  const [apiState, setApiState] = useState<{
+    status: 'connected' | 'checking' | 'offline' | 'unconfigured';
+    database: string;
+    note?: string;
+  }>({
+    status: isApiConfigured() ? 'checking' : 'unconfigured',
+    database: 'none',
+  });
+
   // Admin session state
-  // Authentication sessions are intentionally memory-only. Stored profiles and
-  // registered accounts remain available to the explicit login flow, but a
-  // refresh must never silently authenticate the first saved account.
   const [adminSession, setAdminSession] = useState<AdminCredentials | null>(null);
 
   useEffect(() => {
@@ -47,15 +59,63 @@ export default function App() {
     localStorage.removeItem('placera_active_student_id');
     localStorage.removeItem('placera_active_admin_session');
   }, []);
+
   useEffect(() => {
-  apiHealth()
-    .then((data) => {
-      console.info('Placera API health:', data);
-    })
-    .catch((error) => {
-      console.error('Placera API health check failed:', error);
-    });
-}, []);
+    if (!isApiConfigured()) {
+      console.info('Placera API: Standalone mode (VITE_API_BASE_URL not set).');
+      return;
+    }
+
+    apiHealth()
+      .then((data) => {
+        console.info('Placera API health:', data);
+        setApiState({
+          status: data.status === 'ok' ? 'connected' : 'offline',
+          database: data.database || 'connected',
+          note: data.note,
+        });
+
+        // Load opportunities from PostgreSQL backend if available
+        fetchOpportunitiesApi()
+          .then((res) => {
+            if (res.items && res.items.length > 0) {
+              console.info(`Loaded ${res.items.length} opportunities from PostgreSQL API.`);
+              const dbJobs: JobPosting[] = res.items.map((item) => ({
+                job_id: item.opportunity_id,
+                company: item.company || 'Tech Partner',
+                job_title: item.title,
+                required_skills: item.required_skills || [],
+                preferred_skills: [],
+                experience_level: 'Entry Level (Fresher)',
+                minimum_gpa: item.minimum_cgpa,
+                eligible_branches: (item.eligible_branches as any[]) || ['CSE'],
+                location: 'Bengaluru / Remote',
+                job_type: 'Full-Time',
+                description: `${item.title} opportunity registered in Placera PostgreSQL database.`,
+                max_allowed_backlogs: item.max_active_backlogs ?? 0,
+                eligible_graduation_years: item.eligible_graduation_years ?? undefined,
+                isSyntheticDemoData: item.source === 'synthetic',
+              }));
+              setJobs(dbJobs);
+            } else {
+              console.info('PostgreSQL opportunity table empty, seeding default opportunities...');
+              MOCK_JOBS.forEach((job) => {
+                saveOpportunityApi(job).catch(() => {});
+              });
+            }
+          })
+          .catch((err) => {
+            console.warn('Could not fetch opportunities from API:', err);
+          });
+      })
+      .catch((error) => {
+        console.warn('Placera API health check failed:', error);
+        setApiState({
+          status: 'offline',
+          database: 'unreachable',
+        });
+      });
+  }, []);
 
 
   // User registered demo profiles in localStorage
@@ -192,6 +252,13 @@ export default function App() {
       }
       return [newProfile, ...prev];
     });
+
+    if (isApiConfigured()) {
+      saveStudentApi(newProfile).catch((err) => {
+        console.warn('Could not sync student registration with API:', err);
+      });
+    }
+
     setShowAuthModal(false);
     triggerToast(`Application submitted! Request sent to College Admin for approval.`);
     navigateTo('waiting-approval');
@@ -243,6 +310,12 @@ export default function App() {
     setRegisteredStudents(prev => 
       prev.map(s => s.student_id === updatedStudent.student_id ? updatedStudent : s)
     );
+
+    if (isApiConfigured()) {
+      saveStudentApi(updatedStudent).catch((err) => {
+        console.warn('Could not sync student update with API:', err);
+      });
+    }
   };
 
   const handleRefreshVerificationStatus = () => {
@@ -310,6 +383,11 @@ export default function App() {
   // Admin add job
   const handleAddJob = (newJob: JobPosting) => {
     setJobs(prev => [newJob, ...prev]);
+    if (isApiConfigured()) {
+      saveOpportunityApi(newJob).catch((err) => {
+        console.warn('Could not sync new opportunity with API:', err);
+      });
+    }
     triggerToast(`New campus recruiter opening posted: ${newJob.company} - ${newJob.job_title}`);
   };
 
@@ -346,6 +424,7 @@ export default function App() {
         onOpenPhotoModal={() => setShowGlobalPhotoModal(true)}
         onLogout={handleLogout}
         onAdminLogout={handleAdminLogout}
+        apiState={apiState}
       />
 
       {/* Main Content Area */}

@@ -39,6 +39,11 @@ interface NavbarProps {
   onOpenPhotoModal?: () => void;
   onLogout?: () => void;
   onAdminLogout?: () => void;
+  apiState?: {
+    status: 'connected' | 'checking' | 'offline' | 'unconfigured';
+    database: string;
+    note?: string;
+  };
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -54,6 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenPhotoModal,
   onLogout,
   onAdminLogout,
+  apiState,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -88,6 +94,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span className="font-semibold text-white">B.Tech CSE Artificial Intelligence PBL Project</span>
           <span className="hidden sm:inline text-slate-400">| PLACERA PLACEMENT ENGINE</span>
+          {apiState && (
+            <div
+              className={`hidden md:inline-flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                apiState.status === 'connected'
+                  ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                  : apiState.status === 'checking'
+                  ? 'bg-amber-950/60 border-amber-700/60 text-amber-300'
+                  : 'bg-slate-800/80 border-slate-700 text-slate-400'
+              }`}
+              title={
+                apiState.status === 'connected'
+                  ? `Connected to FastAPI API & PostgreSQL (${apiState.database})`
+                  : apiState.status === 'checking'
+                  ? 'Connecting to backend API...'
+                  : 'API not configured or offline - running in standalone local mode'
+              }
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  apiState.status === 'connected'
+                    ? 'bg-emerald-400 animate-pulse'
+                    : apiState.status === 'checking'
+                    ? 'bg-amber-400 animate-pulse'
+                    : 'bg-slate-500'
+                }`}
+              ></span>
+              <span>
+                {apiState.status === 'connected'
+                  ? `API: Connected (${apiState.database === 'connected' ? 'PostgreSQL' : apiState.database})`
+                  : apiState.status === 'checking'
+                  ? 'API: Connecting...'
+                  : apiState.status === 'offline'
+                  ? 'API: Offline'
+                  : 'API: Standalone Mode'}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {adminSession ? (

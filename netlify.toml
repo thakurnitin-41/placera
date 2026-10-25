@@ -1,1 +1,0 @@
-[build]`npublish = "dist"`ncommand = "npm run build"`n`n[[redirects]]`nfrom = "/*"`nto = "/index.html"`nstatus = 200
