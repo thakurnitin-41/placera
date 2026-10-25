@@ -339,6 +339,7 @@ export interface PipelineStep {
 
 export type ActivePage =
   | 'landing'
+  | 'about'
   | 'dashboard'
   | 'profile'
   | 'pipeline'
