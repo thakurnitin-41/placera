@@ -61,13 +61,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     }
   };
 
-  const scrollToWorking = () => {
-    const el = document.getElementById('platform-working-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <div className="space-y-16 pb-20">
       
@@ -125,25 +118,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ArrowRight className="w-4 h-4 text-indigo-200 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
-              {/* HOW IT WORKS ANCHOR BUTTON */}
-              <button
-                onClick={scrollToWorking}
-                id="hero-how-it-works-btn"
-                className="w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-              >
-                <Cpu className="w-4 h-4 text-indigo-600" />
-                <span>How Platform Works</span>
-              </button>
-
-              {/* DEMO MODE BUTTON */}
-              <button
-                onClick={onLoadDemoAndRun}
-                id="hero-demo-mode-btn"
-                className="w-full sm:w-auto px-5 py-3.5 text-sm font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-              >
-                <UserCheck className="w-4 h-4 text-emerald-600" />
-                <span>Instant Demo Preview</span>
-              </button>
             </div>
 
             {/* Trust Indicators */}
@@ -229,231 +203,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* SECTION 2: PLATFORM WORKING (ISKI WORKING KE BAARE ME) */}
-      <section id="platform-working-section" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xs space-y-8">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full uppercase tracking-wider">
-              <Zap className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Step-by-Step Architecture</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              How The Platform Works (Platform Ki Working)
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              From student registration to AI-ranked placement opportunities in 4 seamless steps
-            </p>
-          </div>
-
-          {/* 4 Steps Visual Flow */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 relative">
-            
-            {/* Step 1 */}
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between space-y-4 hover:border-indigo-300 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
-                    01
-                  </span>
-                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded">
-                    Account Setup
-                  </span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-1.5">
-                  <UserPlus className="w-4 h-4 text-indigo-600" />
-                  <span>Register & Profile Setup</span>
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                  Create your profile with college credentials, CGPA, department, roll number, and capture your profile picture via live webcam or file upload.
-                </p>
-                <div className="space-y-1 bg-white rounded-lg p-2.5 border border-slate-200 text-[11px] text-slate-600 font-mono">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Auth:</span>
-                    <span className="font-semibold text-slate-800">Email / Roll No</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Photo:</span>
-                    <span className="font-semibold text-slate-800">Webcam / File</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={handleGetStarted}
-                className="w-full text-center py-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
-              >
-                Register Now →
-              </button>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between space-y-4 hover:border-indigo-300 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="w-9 h-9 rounded-xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
-                    02
-                  </span>
-                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">
-                    Data Ingestion
-                  </span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-blue-600" />
-                  <span>Skills & Achievements</span>
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                  Log your technical programming languages, frameworks, hackathons won, competitive coding ranks, and verified academic milestones.
-                </p>
-                <div className="space-y-1 bg-white rounded-lg p-2.5 border border-slate-200 text-[11px] text-slate-600 font-mono">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Skills:</span>
-                    <span className="font-semibold text-slate-800">Python, DSA, ML</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Awards:</span>
-                    <span className="font-semibold text-slate-800">Hackathons, Ranks</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setActivePage('profile')}
-                className="w-full text-center py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
-              >
-                Manage Profile →
-              </button>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between space-y-4 hover:border-indigo-300 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="w-9 h-9 rounded-xl bg-purple-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
-                    03
-                  </span>
-                  <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider bg-purple-50 px-2 py-0.5 rounded">
-                    ML Processing
-                  </span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-1.5">
-                  <Binary className="w-4 h-4 text-purple-600" />
-                  <span>TF-IDF & weighted criteria</span>
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                  The AI pipeline vectorizes profile text, measures Cosine Similarity against synthetic demo opportunities, and combines explicit skill, academic, project, and role-alignment criteria into an explainable match score.
-                </p>
-                <div className="space-y-1 bg-white rounded-lg p-2.5 border border-slate-200 text-[11px] text-slate-600 font-mono">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">NLP:</span>
-                    <span className="font-semibold text-slate-800">TF-IDF Vector Space</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Ensemble:</span>
-                    <span className="font-semibold text-slate-800">150 Decision Trees</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setActivePage('pipeline')}
-                className="w-full text-center py-2 text-xs font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
-              >
-                Inspect Pipeline →
-              </button>
-            </div>
-
-            {/* Step 4 */}
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between space-y-4 hover:border-emerald-300 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="w-9 h-9 rounded-xl bg-emerald-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
-                    04
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded">
-                    Output & Action
-                  </span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-1.5">
-                  <Target className="w-4 h-4 text-emerald-600" />
-                  <span>Ranked Jobs & Roadmap</span>
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                  Instant list of top matched companies with salary CTC, eligibility check, matching vs missing skills, and detailed interview preparation steps.
-                </p>
-                <div className="space-y-1 bg-white rounded-lg p-2.5 border border-slate-200 text-[11px] text-slate-600 font-mono">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Output:</span>
-                    <span className="font-semibold text-slate-800">Ranked Match %</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Roadmap:</span>
-                    <span className="font-semibold text-slate-800">Targeted Gap Prep</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setActivePage('recommendations')}
-                className="w-full text-center py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
-              >
-                View Job Matches →
-              </button>
-            </div>
-
-          </div>
-
-          {/* Current Active Candidate Quick Peek */}
-          <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/80 p-4 rounded-2xl">
-            {student ? (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">
-                  {student.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <span>Active Profile:</span>
-                    <span className="text-indigo-600 font-extrabold">{student.name}</span>
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    {student.branch} • CGPA {student.GPA}/10.0 • {student.skills.length} skills listed
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-sm">
-                  <UserCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">
-                    No active student dossier logged in
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    Create your profile to calculate personalized match scores and skill gaps.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <button
-                onClick={handleLogin}
-                className="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <LogIn className="w-3.5 h-3.5 text-slate-500" />
-                <span>{student ? 'Switch / Login' : 'Sign In'}</span>
-              </button>
-
-              <button
-                onClick={handleGetStarted}
-                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>{student ? 'Register New Student' : 'Create My Profile'}</span>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
       {/* SECTION 3: RECRUITER SPECTRUM & CAMPUS OPPORTUNITIES */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
@@ -536,7 +285,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="w-full sm:w-auto px-7 py-3.5 text-sm font-bold bg-white text-indigo-950 hover:bg-slate-100 rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 group"
                 >
                   <UserPlus className="w-4 h-4 text-indigo-600" />
-                  <span>Get Started (Register)</span>
+                  <span>Get Started (Register / Sign In)</span>
                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
@@ -546,7 +295,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="w-full sm:w-auto px-5 py-3.5 text-sm font-semibold bg-indigo-800/80 hover:bg-indigo-700 text-white rounded-xl border border-indigo-600/60 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
                   <LogIn className="w-4 h-4 text-indigo-300" />
-                  <span>Student Login</span>
+                  <span>Sign In / Register</span>
                 </button>
               </div>
             )}

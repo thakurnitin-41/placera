@@ -23,7 +23,8 @@ import {
   User,
   ShieldCheck,
   Lock,
-  FileCheck2
+  FileCheck2,
+  MoreHorizontal
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -57,6 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const navItems: { id: ActivePage; label: string; icon: React.ReactNode; section: 'Student' | 'Admin'; badge?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <TrendingUp className="w-4 h-4" />, section: 'Student' },
@@ -338,6 +340,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             )}
+          </div>
+
+          {/* Simple navigation menu: Home and About */}
+          <div className="relative">
+            <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} aria-label="More navigation options" aria-expanded={moreMenuOpen} className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-indigo-600 transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
+            {moreMenuOpen && <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-slate-200 bg-white py-1 shadow-xl z-50">
+              <button onClick={() => { setActivePage('landing'); setMoreMenuOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50">Home</button>
+              <button onClick={() => { setActivePage('about'); setMoreMenuOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50">About PLACERA</button>
+            </div>}
           </div>
 
           {/* Mobile menu button & quick profile indicator */}
