@@ -122,16 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
             </div>
-          ) : (
-            <button
-              onClick={() => setActivePage('admin')}
-              id="nav-admin-portal-top-btn"
-              className="flex items-center gap-1.5 text-xs text-emerald-300 hover:text-white transition-colors cursor-pointer font-bold"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Admin / TPO Portal</span>
-            </button>
-          )}
+          ) : null}
           <button
             onClick={onOpenSchema}
             id="nav-schema-btn"
@@ -306,38 +297,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             ) : (
-              /* When not logged in: Clean dual portal buttons (Student & Admin) */
-              <div className="flex items-center gap-2">
-                {onOpenAuthModal && (
-                  <>
-                    <button
-                      onClick={() => onOpenAuthModal('student', 'login')}
-                      id="navbar-student-login-btn"
-                      className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <LogIn className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Student Sign In</span>
-                    </button>
-
-                    <button
-                      onClick={() => onOpenAuthModal('student', 'register')}
-                      id="navbar-student-register-btn"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all cursor-pointer active:scale-95"
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>Student Register</span>
-                    </button>
-
-                    <button
-                      onClick={() => setActivePage('admin')}
-                      id="navbar-admin-entry-btn"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all cursor-pointer active:scale-95"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Admin Portal</span>
-                    </button>
-                  </>
-                )}
+              {/* Logged-out users enter through the landing page CTA. */}
+              <div className="flex items-center gap-2" />
               </div>
             )}
           </div>
@@ -530,38 +491,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             ) : (
-              /* When NOT signed in: Show Register & Sign In options */
-              onOpenAuthModal && (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      onOpenAuthModal('student', 'register');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full text-center py-2 text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl cursor-pointer"
-                  >
-                    🎓 Student Register
-                  </button>
-                  <button
-                    onClick={() => {
-                      onOpenAuthModal('student', 'login');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full text-center py-2 text-xs font-semibold bg-slate-100 text-slate-800 rounded-xl cursor-pointer"
-                  >
-                    🎓 Student Sign In
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActivePage('admin');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full col-span-2 text-center py-2 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl cursor-pointer"
-                  >
-                    🏛️ Placement Officer / Admin Portal
-                  </button>
-                </div>
-              )
+              {/* Logged-out users use the single landing-page CTA. */}
+              null
             )}
           </div>
         </div>

@@ -289,14 +289,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
-                <button
-                  onClick={handleLogin}
-                  id="bottom-login-btn"
-                  className="w-full sm:w-auto px-5 py-3.5 text-sm font-semibold bg-indigo-800/80 hover:bg-indigo-700 text-white rounded-xl border border-indigo-600/60 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <LogIn className="w-4 h-4 text-indigo-300" />
-                  <span>Sign In / Register</span>
-                </button>
+
               </div>
             )}
           </div>
