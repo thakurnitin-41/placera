@@ -24,6 +24,8 @@ import { AdminSecurityGate, AdminCredentials } from './components/AdminSecurityG
 import { VerificationWaitingGate } from './components/VerificationWaitingGate';
 
 import { Database, CheckCircle2 } from 'lucide-react';
+import { apiHealth } from './services/apiClient';
+
 
 export default function App() {
   const [activePage, setActivePage] = useState<ActivePage>('landing');
@@ -45,6 +47,16 @@ export default function App() {
     localStorage.removeItem('placera_active_student_id');
     localStorage.removeItem('placera_active_admin_session');
   }, []);
+  useEffect(() => {
+  apiHealth()
+    .then((data) => {
+      console.info('Placera API health:', data);
+    })
+    .catch((error) => {
+      console.error('Placera API health check failed:', error);
+    });
+}, []);
+
 
   // User registered demo profiles in localStorage
   const [registeredStudents, setRegisteredStudents] = useState<StudentProfileData[]>(() => {
