@@ -23,8 +23,7 @@ import {
   User,
   ShieldCheck,
   Lock,
-  FileCheck2,
-  MoreHorizontal
+  FileCheck2
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -58,7 +57,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const navItems: { id: ActivePage; label: string; icon: React.ReactNode; section: 'Student' | 'Admin'; badge?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <TrendingUp className="w-4 h-4" />, section: 'Student' },
@@ -296,20 +294,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 )}
               </div>
-            ) : (
-              {/* Logged-out users enter through the landing page CTA. */}
-              <div className="flex items-center gap-2" />
-              </div>
-            )}
-          </div>
-
-          {/* Simple navigation menu: Home and About */}
-          <div className="relative">
-            <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} aria-label="More navigation options" aria-expanded={moreMenuOpen} className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-indigo-600 transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
-            {moreMenuOpen && <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-slate-200 bg-white py-1 shadow-xl z-50">
-              <button onClick={() => { setActivePage('landing'); setMoreMenuOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50">Home</button>
-              <button onClick={() => { setActivePage('about'); setMoreMenuOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50">About PLACERA</button>
-            </div>}
+            ) : null}
           </div>
 
           {/* Mobile menu button & quick profile indicator */}
@@ -337,13 +322,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Admin</span>
               </button>
-            ) : onOpenAuthModal ? (
-              <button
-                onClick={() => onOpenAuthModal('student', 'login')}
-                className="px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl"
-              >
-                Sign In / Register
-              </button>
             ) : null}
 
             <button
@@ -360,6 +338,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2 shadow-lg animate-in slide-in-from-top-2">
+          <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100">
+            <button onClick={() => { setActivePage('landing'); setMobileMenuOpen(false); }} className={`px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 ${activePage === 'landing' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>Home</button>
+            <button onClick={() => { setActivePage('about'); setMobileMenuOpen(false); }} className={`px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 ${activePage === 'about' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>About PLACERA</button>
+          </div>
           {student && (
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -491,8 +473,38 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             ) : (
-              {/* Logged-out users use the single landing-page CTA. */}
-              null
+              /* When NOT signed in: Show Register & Sign In options */
+              onOpenAuthModal && (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      onOpenAuthModal('student', 'register');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-center py-2 text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl cursor-pointer"
+                  >
+                    🎓 Student Register
+                  </button>
+                  <button
+                    onClick={() => {
+                      onOpenAuthModal('student', 'login');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-center py-2 text-xs font-semibold bg-slate-100 text-slate-800 rounded-xl cursor-pointer"
+                  >
+                    🎓 Student Sign In
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActivePage('admin');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full col-span-2 text-center py-2 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl cursor-pointer"
+                  >
+                    🏛️ Placement Officer / Admin Portal
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>

@@ -338,8 +338,6 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        {activePage === 'about' && <AboutPlacera />}
-
         {activePage === 'landing' && (
           <LandingPage
             setActivePage={navigateTo}
@@ -358,6 +356,13 @@ export default function App() {
             onOpenAuthModal={(mode) => {
               handleOpenAuthModal('student', mode || 'login');
             }}
+          />
+        )}
+
+        {activePage === 'about' && (
+          <AboutPlacera
+            setActivePage={navigateTo}
+            onGetStarted={() => handleOpenAuthModal('student', 'register')}
           />
         )}
 
