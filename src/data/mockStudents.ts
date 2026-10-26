@@ -39,6 +39,8 @@ export const createBlankStudentProfile = (name = 'Candidate'): StudentProfileDat
     'Computer Networks'
   ],
   atsResumeScore: 85,
+  resumeFileName: 'Aarav_Sharma_Resume.pdf',
+  resumeFileSize: '240 KB',
   willingToRelocate: true
 });
 

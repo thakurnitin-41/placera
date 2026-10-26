@@ -187,6 +187,8 @@ export interface StudentProfileData {
   leadershipAndExtracurriculars?: string[];
   atsResumeScore?: number; // ATS Resume Score out of 100
   resumeFileName?: string;
+  resumePdfUrl?: string; // Data URL or URL of uploaded PDF resume
+  resumeFileSize?: string; // Formatted file size (e.g. "185 KB")
   resumeText?: string;
   willingToRelocate?: boolean;
 }

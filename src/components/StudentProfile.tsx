@@ -237,7 +237,13 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
   const [showAchievementModal, setShowAchievementModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
-  const handleResumeAnalyzed = (analysis: ATSResumeAnalysis, resumeText: string, fileName?: string) => {
+  const handleResumeAnalyzed = (
+    analysis: ATSResumeAnalysis, 
+    resumeText: string, 
+    fileName?: string, 
+    pdfUrl?: string, 
+    fileSize?: string
+  ) => {
     if (!student) return;
     const mergedSkills = Array.from(new Set([...student.skills, ...analysis.foundSkills]));
     setStudent({
@@ -246,6 +252,8 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
       atsResumeScore: analysis.atsScore,
       resumeText,
       resumeFileName: fileName,
+      resumePdfUrl: pdfUrl || student.resumePdfUrl,
+      resumeFileSize: fileSize || student.resumeFileSize,
     });
   };
 

@@ -358,11 +358,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       <ResumeAnalyzer
         student={student}
         onScoreSaved={score => onUpdateStudent?.({ ...student, atsResumeScore: score })}
-        onResumeAnalyzed={(analysis, resumeText, fileName) => onUpdateStudent?.({
+        onResumeAnalyzed={(analysis, resumeText, fileName, pdfUrl, fileSize) => onUpdateStudent?.({
           ...student,
           atsResumeScore: analysis.atsScore,
           resumeText,
           resumeFileName: fileName,
+          resumePdfUrl: pdfUrl || student.resumePdfUrl,
+          resumeFileSize: fileSize || student.resumeFileSize,
           skills: Array.from(new Set([...student.skills, ...analysis.foundSkills])),
         })}
       />

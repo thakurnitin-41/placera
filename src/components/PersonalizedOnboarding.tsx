@@ -511,7 +511,7 @@ export const PersonalizedOnboarding: React.FC<PersonalizedOnboardingProps> = ({
             className="w-full py-2.5 px-4 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Edit3 className="w-4 h-4" />
-            <span>Update Resume or Paste Full Text</span>
+            <span>Upload or Update PDF Resume</span>
           </button>
         </div>
 

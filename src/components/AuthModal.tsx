@@ -13,6 +13,7 @@ import {
   formatCourseAndBranch 
 } from '../data/coursesAndBranches';
 import { hashPassword, verifyPassword, calculateAcademicStanding } from '../utils/crypto';
+import { extractTextFromPdf, isPdfFile, readFileAsDataUrl, formatFileSize } from '../utils/pdfExtractor';
 import { AdminCredentials, DEFAULT_ADMIN_CONFIG } from './AdminSecurityGate';
 import { 
   UserPlus, 
@@ -47,7 +48,8 @@ import {
   Check,
   SkipForward,
   HelpCircle,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -174,6 +176,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Resume & Links
   const [regResumeText, setRegResumeText] = useState('');
   const [regResumeFileName, setRegResumeFileName] = useState('');
+  const [regResumePdfUrl, setRegResumePdfUrl] = useState('');
+  const [regResumeFileSize, setRegResumeFileSize] = useState('');
+  const [regResumeError, setRegResumeError] = useState('');
+  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
   const [regLinkedinUrl, setRegLinkedinUrl] = useState('');
   const [regGithubUrl, setRegGithubUrl] = useState('');
   const [regLeetcodeHandle, setRegLeetcodeHandle] = useState('');
@@ -342,19 +348,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setRegSkills(regSkills.filter(s => s !== skillToRemove));
   };
 
-  // Resume File Upload handler (client-side extraction)
-  const handleResumeFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Resume File Upload handler (client-side PDF extraction)
+  const handleResumeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setRegResumeFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      if (content) {
-        setRegResumeText(content);
+
+    setRegResumeError('');
+
+    if (!isPdfFile(file)) {
+      setRegResumeError('Resume must be uploaded in .PDF format (.pdf file).');
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      setIsExtractingPdf(true);
+      const formattedSize = formatFileSize(file.size);
+      setRegResumeFileName(file.name);
+      setRegResumeFileSize(formattedSize);
+
+      const [dataUrl, extraction] = await Promise.all([
+        readFileAsDataUrl(file),
+        extractTextFromPdf(file)
+      ]);
+
+      setRegResumePdfUrl(dataUrl);
+      if (extraction.text.trim()) {
+        setRegResumeText(extraction.text.trim());
       }
-    };
-    reader.readAsText(file);
+    } catch (err: any) {
+      console.error('Failed to parse PDF resume:', err);
+      setRegResumeError(err.message || 'Could not parse PDF. Please verify the file is a valid PDF document.');
+    } finally {
+      setIsExtractingPdf(false);
+      e.target.value = '';
+    }
   };
 
   // Load registered admins
@@ -504,6 +532,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         atsResumeScore: 85,
         resumeText: regResumeText.trim() || undefined,
         resumeFileName: regResumeFileName || undefined,
+        resumePdfUrl: regResumePdfUrl || undefined,
+        resumeFileSize: regResumeFileSize || undefined,
         linkedinUrl: regLinkedinUrl.trim() || undefined,
         githubUrl: regGithubUrl.trim() || undefined,
         leetcodeHandle: regLeetcodeHandle.trim() || undefined,
@@ -1388,30 +1418,89 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Resume Text & ATS Scan */}
+                        {/* Resume Document (.PDF) & ATS Scan */}
                         <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3">
                           <div className="flex items-center justify-between">
-                            <h5 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                              <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                              Resume Text for Instant ATS Keyword Scan
-                            </h5>
-                            <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg cursor-pointer hover:bg-indigo-100">
+                            <div>
+                              <h5 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                                Resume Document (.PDF)
+                              </h5>
+                              <p className="text-[10px] text-slate-500 mt-0.5">
+                                Upload your resume in official .PDF format for ATS scoring and skill extraction.
+                              </p>
+                            </div>
+                            <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg cursor-pointer hover:bg-indigo-100 transition-colors shrink-0">
                               <Upload className="w-3 h-3" />
-                              <span>Upload File</span>
-                              <input type="file" accept=".txt,.md,.pdf" onChange={handleResumeFileUpload} className="hidden" />
+                              <span>{regResumeFileName ? 'Replace .PDF' : 'Upload .PDF'}</span>
+                              <input 
+                                type="file" 
+                                accept=".pdf,application/pdf" 
+                                onChange={handleResumeFileUpload} 
+                                disabled={isExtractingPdf}
+                                className="hidden" 
+                              />
                             </label>
                           </div>
 
-                          <textarea
-                            rows={3}
-                            value={regResumeText}
-                            onChange={(e) => setRegResumeText(e.target.value)}
-                            placeholder="Paste your raw resume text here (education, experience, projects, skills) for automatic ATS scoring and keyword analysis."
-                            className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono"
-                          />
-                          {regResumeFileName && (
-                            <p className="text-[10px] text-emerald-600 font-semibold">Loaded: {regResumeFileName}</p>
+                          {isExtractingPdf && (
+                            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-700">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                              <span>Extracting text and scanning PDF resume tokens...</span>
+                            </div>
                           )}
+
+                          {regResumeError && (
+                            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>{regResumeError}</span>
+                            </div>
+                          )}
+
+                          {regResumeFileName && (
+                            <div className="p-2.5 bg-white rounded-xl border border-indigo-200 flex items-center justify-between shadow-2xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 border border-red-200 flex flex-col items-center justify-center shrink-0">
+                                  <FileText className="w-3.5 h-3.5 text-red-600" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-slate-900 truncate" title={regResumeFileName}>
+                                    {regResumeFileName}
+                                  </p>
+                                  <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>{regResumeFileSize ? `${regResumeFileSize} • ` : ''}PDF Attached & Parsed</span>
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRegResumeFileName('');
+                                  setRegResumePdfUrl('');
+                                  setRegResumeFileSize('');
+                                  setRegResumeText('');
+                                }}
+                                className="p-1 text-slate-400 hover:text-red-600 rounded-md transition-colors cursor-pointer"
+                                title="Remove PDF"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                              Extracted Resume Text / Keywords (Auto-filled from PDF)
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={regResumeText}
+                              onChange={(e) => setRegResumeText(e.target.value)}
+                              placeholder="Text from your uploaded .PDF will automatically populate here for ATS scoring, or you can paste additional details."
+                              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                          </div>
                         </div>
 
                       </div>
