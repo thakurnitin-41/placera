@@ -22,6 +22,7 @@ import { PhotoCaptureModal } from './components/PhotoCaptureModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminSecurityGate, AdminCredentials } from './components/AdminSecurityGate';
 import { VerificationWaitingGate } from './components/VerificationWaitingGate';
+import { PersonalizedOnboarding } from './components/PersonalizedOnboarding';
 
 import { Database, CheckCircle2 } from 'lucide-react';
 import {
@@ -174,17 +175,8 @@ export default function App() {
       return;
     }
 
-    // If student is registered/logged in but verificationStatus !== 'Verified', protect access to recruitment features
-    const protectedPages: ActivePage[] = ['pipeline', 'recommendations', 'jobs', 'skill-gap', 'dashboard'];
-    if (student && student.verificationStatus !== 'Verified' && protectedPages.includes(nextPage)) {
-      triggerToast("Access Locked: Verification request pending College Administrator approval.");
-      if (activePage !== 'waiting-approval') {
-        setPageHistory(prev => [...prev, activePage]);
-        setActivePage('waiting-approval');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      return;
-    }
+    // Candidates pending verification can freely explore onboarding, recommendations, skill-gap,
+    // and analytics in preview mode with graceful handling of incomplete profiles.
 
     if (nextPage === activePage) return;
     setPageHistory(prev => [...prev, activePage]);
@@ -260,8 +252,8 @@ export default function App() {
     }
 
     setShowAuthModal(false);
-    triggerToast(`Application submitted! Request sent to College Admin for approval.`);
-    navigateTo('waiting-approval');
+    triggerToast(`Welcome ${newProfile.name}! Your personalised AI onboarding is ready.`);
+    navigateTo('onboarding');
   };
 
   const handleLoginSuccess = (loggedInProfile: StudentProfileData) => {
@@ -269,11 +261,7 @@ export default function App() {
     localStorage.setItem('placera_active_student_id', loggedInProfile.student_id);
     setShowAuthModal(false);
     triggerToast(`Welcome back, ${loggedInProfile.name}!`);
-    if (loggedInProfile.verificationStatus !== 'Verified') {
-      navigateTo('waiting-approval');
-    } else {
-      navigateTo('profile');
-    }
+    navigateTo('onboarding');
   };
 
   const handleStudentPasswordReset = (updatedStudent: StudentProfileData) => {
@@ -431,8 +419,41 @@ export default function App() {
         apiState={apiState}
       />
 
+      {/* Verification Notice Banner for Candidates Under Review */}
+      {student && student.verificationStatus !== 'Verified' && activePage !== 'waiting-approval' && activePage !== 'landing' && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-amber-900">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className="font-bold">College Verification: {student.verificationStatus || 'Pending Review'}</span>
+              <span className="hidden sm:inline text-amber-800">
+                • Your academic dossier is under review by the Placement Cell. All AI matchmaking, ATS analytics, and skill roadmaps are active.
+              </span>
+            </div>
+            <button
+              onClick={() => navigateTo('waiting-approval')}
+              className="text-[11px] font-bold text-amber-900 hover:text-amber-950 underline shrink-0 cursor-pointer"
+            >
+              View Verification Dossier
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {activePage === 'onboarding' && (
+          <PersonalizedOnboarding
+            student={student}
+            jobs={jobs}
+            recommendations={recommendations}
+            setActivePage={navigateTo}
+            onSelectJob={handleSelectJob}
+            onOpenAuthModal={(role, mode) => {
+              handleOpenAuthModal(role || 'student', mode || 'login');
+            }}
+          />
+        )}
         {activePage === 'landing' && (
           <LandingPage
             setActivePage={navigateTo}
@@ -448,8 +469,8 @@ export default function App() {
             onGetStarted={() => {
               handleOpenAuthModal('student', 'register');
             }}
-            onOpenAuthModal={(mode) => {
-              handleOpenAuthModal('student', mode || 'login');
+            onOpenAuthModal={(role, mode) => {
+              handleOpenAuthModal(role || 'student', mode || 'login');
             }}
           />
         )}

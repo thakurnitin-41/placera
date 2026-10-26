@@ -65,6 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const navItems: { id: ActivePage; label: string; icon: React.ReactNode; section: 'Student' | 'Admin'; badge?: string }[] = [
+    { id: 'onboarding', label: 'Onboarding', icon: <Sparkles className="w-4 h-4 text-indigo-500" />, section: 'Student' },
     { id: 'dashboard', label: 'Dashboard', icon: <TrendingUp className="w-4 h-4" />, section: 'Student' },
     { id: 'profile', label: 'Profile', icon: <UserCheck className="w-4 h-4" />, section: 'Student' },
     { id: 'pipeline', label: 'AI Match', icon: <Cpu className="w-4 h-4" />, section: 'Student' },
@@ -311,6 +312,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                       <button
                         onClick={() => {
+                          setActivePage('onboarding');
+                          setUserDropdownOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium"
+                      >
+                        <Sparkles className="w-4 h-4 text-indigo-600" />
+                        <span>AI Onboarding & Roadmap</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
                           setActivePage('profile');
                           setUserDropdownOpen(false);
                         }}
@@ -337,6 +349,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </div>
                   </div>
                 )}
+              </div>
+            ) : onOpenAuthModal ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenAuthModal('student', 'login')}
+                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => onOpenAuthModal('student', 'register')}
+                  className="px-4 py-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Create Account</span>
+                </button>
+                <button
+                  onClick={() => onOpenAuthModal('admin', 'login')}
+                  title="Placement Officer Portal"
+                  className="p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-emerald-200"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                </button>
               </div>
             ) : null}
           </div>

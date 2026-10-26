@@ -341,6 +341,7 @@ export type ActivePage =
   | 'landing'
   | 'about'
   | 'dashboard'
+  | 'onboarding'
   | 'profile'
   | 'pipeline'
   | 'recommendations'
