@@ -37,28 +37,93 @@ const parseSalaryLPA = (ctc: string | undefined): number => {
   return Math.max(...matches.map(Number));
 };
 
+const CITY_ALIASES: Record<string, string[]> = {
+  bangalore: ['bengaluru', 'bangalore', 'blr'],
+  bengaluru: ['bengaluru', 'bangalore', 'blr'],
+  blr: ['bengaluru', 'bangalore', 'blr'],
+  gurgaon: ['gurugram', 'gurgaon', 'delhi ncr', 'ncr'],
+  gurugram: ['gurugram', 'gurgaon', 'delhi ncr', 'ncr'],
+  delhi: ['delhi', 'new delhi', 'delhi ncr', 'ncr'],
+  'new delhi': ['delhi', 'new delhi', 'delhi ncr', 'ncr'],
+  'delhi ncr': ['delhi', 'new delhi', 'delhi ncr', 'ncr'],
+  ncr: ['delhi', 'new delhi', 'delhi ncr', 'ncr'],
+  noida: ['noida', 'delhi ncr', 'ncr'],
+  mumbai: ['mumbai', 'bombay', 'navi mumbai', 'bom'],
+  'navi mumbai': ['navi mumbai', 'mumbai', 'bombay'],
+  bombay: ['mumbai', 'bombay', 'navi mumbai'],
+  bom: ['mumbai', 'bombay', 'navi mumbai'],
+  kolkata: ['kolkata', 'calcutta'],
+  calcutta: ['kolkata', 'calcutta'],
+  chennai: ['chennai', 'madras'],
+  madras: ['chennai', 'madras'],
+  chandigarh: ['chandigarh', 'mohali', 'chd'],
+  mohali: ['chandigarh', 'mohali', 'chd'],
+  chd: ['chandigarh', 'mohali', 'chd'],
+  pune: ['pune', 'hinjawadi'],
+  hinjawadi: ['pune', 'hinjawadi'],
+  hyderabad: ['hyderabad', 'secunderabad', 'hyd'],
+  secunderabad: ['hyderabad', 'secunderabad', 'hyd'],
+  hyd: ['hyderabad', 'secunderabad', 'hyd'],
+  jaipur: ['jaipur'],
+  lucknow: ['lucknow', 'lko'],
+  lko: ['lucknow', 'lko'],
+  mysore: ['mysore', 'mysuru'],
+  mysuru: ['mysore', 'mysuru'],
+  coimbatore: ['coimbatore', 'cbe'],
+  cbe: ['coimbatore', 'cbe'],
+  remote: ['remote', 'wfh', 'work from home'],
+  hybrid: ['hybrid'],
+};
+
 const normalizeCity = (value: string): string =>
   value
     .toLowerCase()
-    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[()]/g, ' ')
     .replace(/[.&'-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
 const splitCities = (value: string): string[] =>
   value
-    .split(/\s*\/\s*|\s*,\s*|\s*\|\s*|\s*;\s*/)
+    .split(/\s*[\/;,|]\s*|\s+or\s+/i)
     .map(normalizeCity)
     .filter(Boolean);
 
-const cityMatchesLocation = (city: string, location: string): boolean => {
-  const requestedCities = splitCities(city);
-  const availableCities = splitCities(location);
-  return requestedCities.some(requested => availableCities.some(available => (
-    available === requested ||
-    available.includes(requested) ||
-    requested.includes(available)
-  )));
+export const cityMatchesLocation = (queryCity: string, jobLocation: string): boolean => {
+  if (!queryCity || !jobLocation) return false;
+  const requestedCities = splitCities(queryCity);
+  const availableCities = splitCities(jobLocation);
+  if (requestedCities.length === 0 || availableCities.length === 0) return false;
+
+  return requestedCities.some(requested => {
+    const reqClean = normalizeCity(requested);
+    if (!reqClean) return false;
+    const reqAliases = CITY_ALIASES[reqClean] || [reqClean];
+
+    return availableCities.some(available => {
+      const availClean = normalizeCity(available);
+      if (!availClean) return false;
+
+      // 1. Direct equality or substring containment
+      if (availClean === reqClean || availClean.includes(reqClean) || reqClean.includes(availClean)) {
+        return true;
+      }
+
+      // 2. Alias matching
+      const availAliases = CITY_ALIASES[availClean] || [availClean];
+      const hasAliasMatch = reqAliases.some(rAlias =>
+        availAliases.some(aAlias =>
+          aAlias === rAlias || aAlias.includes(rAlias) || rAlias.includes(aAlias)
+        )
+      );
+      if (hasAliasMatch) return true;
+
+      // 3. Sub-word matching for multi-word queries (e.g. "delhi" matching "delhi ncr")
+      const reqWords = reqClean.split(/\s+/).filter(w => w.length > 2);
+      const availWords = availClean.split(/\s+/).filter(w => w.length > 2);
+      return reqWords.some(rw => availWords.some(aw => aw === rw || aw.includes(rw) || rw.includes(aw)));
+    });
+  });
 };
 
 export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = ({
@@ -91,15 +156,35 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
     return set.size;
   }, [recommendations]);
 
+  // Canonical title casing helper for presets
+  const formatCityDisplay = (city: string): string => {
+    return city
+      .split(' ')
+      .map(w => {
+        const lower = w.toLowerCase();
+        if (lower === 'ncr') return 'NCR';
+        if (lower === 'idc') return 'IDC';
+        return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+      })
+      .join(' ');
+  };
+
   // Extract unique filter lists
   const uniqueLocations = useMemo(() => {
     const locs = new Map<string, string>();
     recommendations.forEach(r => {
-      splitCities(r.job.location).forEach(city => {
-        if (!locs.has(city)) locs.set(city, city);
+      const parts = r.job.location.split(/\s*[\/;,|]\s*|\s+or\s+/i);
+      parts.forEach(p => {
+        const cleaned = p.replace(/\([^)]*\)/g, '').trim();
+        if (cleaned && cleaned.toLowerCase() !== 'remote' && cleaned.toLowerCase() !== 'hybrid') {
+          const key = cleaned.toLowerCase();
+          if (!locs.has(key)) {
+            locs.set(key, formatCityDisplay(cleaned));
+          }
+        }
       });
     });
-    return Array.from(locs.values()).sort();
+    return Array.from(locs.values()).sort((a, b) => a.localeCompare(b));
   }, [recommendations]);
 
   // Filtered recommendations
@@ -108,6 +193,18 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
       // Search query filter
       const text = `${rec.job.company} ${rec.job.job_title} ${rec.job.location} ${rec.job.description}`.toLowerCase();
       if (searchQuery && !text.includes(searchQuery.toLowerCase())) return false;
+
+      // City Search / Filter:
+      // Manual city input takes precedence, then preset dropdown location
+      if (manualCity.trim()) {
+        if (!cityMatchesLocation(manualCity.trim(), rec.job.location)) {
+          return false;
+        }
+      } else if (selectedLocation !== 'all') {
+        if (!cityMatchesLocation(selectedLocation, rec.job.location)) {
+          return false;
+        }
+      }
 
       // Min Match Threshold
       if (rec.final_match_score < minMatchThreshold) return false;
@@ -128,16 +225,6 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
 
       return true;
     }).sort((a, b) => {
-      // Location is a preference signal, not a hard gate: keep opportunities
-      // in other cities visible when the requested city has no exact match.
-      const preferredCity = manualCity.trim() || (
-        selectedLocation !== 'all' ? selectedLocation : (preferredLocation || '')
-      );
-      if (preferredCity) {
-        const aPreferred = cityMatchesLocation(preferredCity, a.job.location);
-        const bPreferred = cityMatchesLocation(preferredCity, b.job.location);
-        if (aPreferred !== bPreferred) return aPreferred ? -1 : 1;
-      }
       if (sortBy === 'match-desc') return b.final_match_score - a.final_match_score;
       if (sortBy === 'match-asc') return a.final_match_score - b.final_match_score;
       if (sortBy === 'salary-desc') return parseSalaryLPA(b.job.ctc_range) - parseSalaryLPA(a.job.ctc_range);
@@ -147,7 +234,7 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
       if (sortBy === 'company-asc') return a.job.company.localeCompare(b.job.company);
       return 0;
     });
-  }, [recommendations, searchQuery, minMatchThreshold, selectedLocation, manualCity, preferredLocation, selectedExp, onlyEligible, sortBy]);
+  }, [recommendations, searchQuery, minMatchThreshold, selectedLocation, manualCity, selectedExp, onlyEligible, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16">
@@ -316,30 +403,54 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
             <span className="font-semibold text-slate-600">Filters:</span>
           </div>
 
-          {/* Manual Location Input (User Requested: apna manpasand city search karne k liye) */}
+          {/* Manual Location Input (apna manpasand city search karne k liye) */}
           <div className="relative flex items-center">
             <MapPin className="w-3.5 h-3.5 text-indigo-500 absolute left-2.5 pointer-events-none" />
             <input
               type="text"
-              placeholder="Manual City (e.g. Pune, Noida, Delhi)..."
+              list="popular-city-suggestions"
+              placeholder="Search City (e.g. Pune, Noida, Delhi)..."
               value={manualCity}
               onChange={(e) => {
                 setManualCity(e.target.value);
                 if (e.target.value) setSelectedLocation('all');
               }}
-              className="pl-8 pr-7 py-1.5 border border-indigo-200 focus:border-indigo-500 rounded-lg bg-indigo-50/40 text-slate-800 text-xs placeholder:text-slate-400 w-56 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="pl-8 pr-7 py-1.5 border border-indigo-200 focus:border-indigo-500 rounded-lg bg-indigo-50/40 text-slate-800 text-xs placeholder:text-slate-400 w-56 sm:w-60 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
+            <datalist id="popular-city-suggestions">
+              {uniqueLocations.map(city => (
+                <option key={city} value={city} />
+              ))}
+              <option value="Remote" />
+              <option value="Hybrid" />
+            </datalist>
             {manualCity && (
               <button
                 type="button"
                 onClick={() => setManualCity('')}
                 className="absolute right-2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                title="Clear city filter"
+                title="Clear city search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
+
+          {/* Quick chip to filter by student's saved profile location */}
+          {!manualCity && selectedLocation === 'all' && preferredLocation && (
+            <button
+              type="button"
+              onClick={() => {
+                setManualCity(preferredLocation);
+                setSelectedLocation('all');
+              }}
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors cursor-pointer"
+              title={`Click to filter jobs in ${preferredLocation}`}
+            >
+              <MapPin className="w-3 h-3 text-indigo-500" />
+              <span>Filter: {preferredLocation}</span>
+            </button>
+          )}
 
           {/* Location preset dropdown */}
           <select
@@ -354,6 +465,8 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
             {uniqueLocations.map(loc => (
               <option key={loc} value={loc}>{loc}</option>
             ))}
+            <option value="Remote">Remote</option>
+            <option value="Hybrid">Hybrid</option>
           </select>
 
           {/* Experience filter: Expanded options */}
@@ -385,37 +498,109 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
       {/* Recommendations Cards List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between text-xs text-slate-500 px-1">
-          <span>Showing {filteredRecs.length} ranked opportunities</span>
+          <span>
+            {manualCity.trim()
+              ? `Showing ${filteredRecs.length} ranked ${filteredRecs.length === 1 ? 'opportunity' : 'opportunities'} in "${manualCity.trim()}"`
+              : selectedLocation !== 'all'
+              ? `Showing ${filteredRecs.length} ranked ${filteredRecs.length === 1 ? 'opportunity' : 'opportunities'} in "${selectedLocation}"`
+              : `Showing ${filteredRecs.length} ranked opportunities`}
+          </span>
           <span>Ranked by explainable cosine + multi-criteria scoring</span>
         </div>
-        {(manualCity || selectedLocation !== 'all' || preferredLocation) && (
-        <div className="px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-800">
-          {manualCity || selectedLocation !== 'all'
-            ? `Prioritizing ${manualCity || selectedLocation}.`
-            : `Prioritizing your saved location: ${preferredLocation}.`
-          } Jobs in other cities remain visible so you can still explore every available placement.
-        </div>
-        )}
+
+        {/* Active City Filter Status Banner */}
+        {manualCity.trim() ? (
+          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 shadow-xs">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>
+                Filtered by manual city search: <strong>"{manualCity.trim()}"</strong>{' '}
+                ({filteredRecs.length} {filteredRecs.length === 1 ? 'placement opportunity' : 'placement opportunities'} found).
+              </span>
+            </div>
+            <button
+              onClick={() => setManualCity('')}
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline cursor-pointer ml-3 shrink-0"
+            >
+              Clear city search
+            </button>
+          </div>
+        ) : selectedLocation !== 'all' ? (
+          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 shadow-xs">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>
+                Filtered by preset location: <strong>"{selectedLocation}"</strong>{' '}
+                ({filteredRecs.length} {filteredRecs.length === 1 ? 'placement opportunity' : 'placement opportunities'} found).
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedLocation('all')}
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline cursor-pointer ml-3 shrink-0"
+            >
+              Clear location filter
+            </button>
+          </div>
+        ) : preferredLocation ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+              <span>Showing all opportunities. Your saved preferred location is <strong>{preferredLocation}</strong>.</span>
+            </div>
+            <button
+              onClick={() => {
+                setManualCity(preferredLocation);
+                setSelectedLocation('all');
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            >
+              <span>Filter {preferredLocation} only</span>
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+        ) : null}
 
         {filteredRecs.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
             <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
-            <h3 className="text-base font-bold text-slate-800">No matching placements found</h3>
+            <h3 className="text-base font-bold text-slate-800">
+              {manualCity.trim()
+                ? `No placements found in "${manualCity.trim()}"`
+                : selectedLocation !== 'all'
+                ? `No placements found in "${selectedLocation}"`
+                : 'No matching placements found'}
+            </h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Try adjusting your search criteria or lowering the match threshold.
+              {manualCity.trim() || selectedLocation !== 'all'
+                ? 'Try searching another city (e.g. Pune, Bangalore, Noida, Hyderabad) or clear the city filter to view all campus opportunities.'
+                : 'Try adjusting your search criteria or lowering the match threshold.'}
             </p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setMinMatchThreshold(0);
-                setSelectedLocation('all');
-                setSelectedExp('all');
-                setOnlyEligible(false);
-              }}
-              className="px-4 py-2 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-lg"
-            >
-              Reset Filters
-            </button>
+            <div className="flex items-center justify-center gap-2 pt-1">
+              {(manualCity || selectedLocation !== 'all') && (
+                <button
+                  onClick={() => {
+                    setManualCity('');
+                    setSelectedLocation('all');
+                  }}
+                  className="px-4 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  Clear City Filter
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setMinMatchThreshold(0);
+                  setSelectedLocation('all');
+                  setManualCity('');
+                  setSelectedExp('all');
+                  setOnlyEligible(false);
+                }}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Reset All Filters
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
